@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include "diag/trace.h"
 
+#include "Gpio.h"
+
 // ----------------------------------------------------------------------------
 //
 // Standalone STM32F4 empty sample (trace via DEBUG).
@@ -51,16 +53,29 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
   // At this stage the system clock should have already been configured
   // at high speed.
 
   // Infinite loop
+  bool lightOn = false;
+
+  VMS::GPIO::Gpio ledPin(VMS::GPIO::PORT::PORT_A, VMS::GPIO::PIN::PIN_5,
+		  VMS::GPIO::PIN_MODE::OUTPUT_PP, VMS::GPIO::PIN_SPEED::FREQ_HIGH, VMS::GPIO::PIN_PULL::PULL_UP);
+
+  ledPin.init();
+
   while (1)
     {
-       // Add your code here.
+	  // Send a greeting to the trace device (skipped on Release).
+	  trace_puts("Hello Arm World!");
+	  trace_puts("Turning on LED");
+
+	  if (!lightOn){
+	    ledPin.gpioWrite(VMS::GPIO::PIN::SET);
+	    lightOn = true;
+	  }
     }
 }
 
