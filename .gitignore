@@ -3,5 +3,11 @@
 .settings/*
 .project
 .cproject
-Debug/
-Debug/*
+.externalToolBuilders/
+.externalToolBuilders/*
+
+#build 
+src/bld
+src/bld/*
+
+
