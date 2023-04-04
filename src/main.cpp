@@ -57,35 +57,36 @@ int main()
   // At this stage the system clock should have already been configured
   // at high speed.
 
+  GpioStruct ledPin;
+  ledPin.port  = PORT_B;
+  ledPin.pin   = PIN_7;
+  ledPin.mode  = OUTPUT;
+  ledPin.oType = PP;
+  ledPin.speed = FREQ_LOW;
+  GpioInit(ledPin);
 
-  STM32f429::GPIO::Gpio ledPin;
-  ledPin.setPort(STM32f429::GPIO::PORT_B);
-  ledPin.setPin(STM32f429::GPIO::PIN_7);
-  ledPin.setMode(STM32f429::GPIO::OUTPUT);
-  ledPin.setOType(STM32f429::GPIO::PP);
-  ledPin.setSpeed(STM32f429::GPIO::FREQ_LOW);
-  ledPin.init();
-  ledPin.gpioWrite(STM32f429::GPIO::RESET);
+  GpioWrite(ledPin, RESET);
 
-  STM32f429::GPIO::Gpio buttonPin;
-  buttonPin.setPort(STM32f429::GPIO::PORT_C);
-  buttonPin.setPin(STM32f429::GPIO::PIN_13);
-  buttonPin.setMode(STM32f429::GPIO::INPUT);
-  buttonPin.setPull(STM32f429::GPIO::PULL_DOWN);
-  buttonPin.init();
+
+  GpioStruct buttonPin;
+  buttonPin.port  = PORT_C;
+  buttonPin.pin   = PIN_13;
+  buttonPin.mode  = INPUT;
+  buttonPin.pull  = PULL_DOWN;
+  GpioInit(buttonPin);
+
 
   while (1)
     {
 	  // Send a greeting to the trace device (skipped on Release).
 	  //trace_puts("Hello Arm World!");
 	  //trace_puts("Turning on LED");
-
-
-	  if (buttonPin.gpioRead() == STM32f429::GPIO::SET){
-		  ledPin.gpioWrite(STM32f429::GPIO::SET);
+	  if (GpioRead(buttonPin) == SET) {
+		  GpioWrite(ledPin, SET);
 	  }
+
 	  else {
-		  ledPin.gpioWrite(STM32f429::GPIO::RESET);
+		  GpioWrite(ledPin, RESET);
 	  }
 
     }
