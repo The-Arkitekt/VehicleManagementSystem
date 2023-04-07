@@ -29,6 +29,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "STM32CommonLibrary_conf.h"
 #include "Gpio.h"
 
 // ----------------------------------------------------------------------------
@@ -51,42 +53,68 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
+void ErrorTrap(){
+	while(1){
+		;
+	}
+}
+
 int main()
 {
   //initHardware();
   // At this stage the system clock should have already been configured
   // at high speed.
 
+  ReturnCode ret = RETURNCODE_UNKNOWN;
+
   GpioStruct ledPin;
-  ledPin.port  = PORT_B;
-  ledPin.pin   = PIN_7;
-  ledPin.mode  = OUTPUT;
-  ledPin.oType = PP;
-  ledPin.speed = FREQ_LOW;
-  GpioInit(ledPin);
+  ledPin.port  = PORTSELECT_B;
+  ledPin.pin   = PINSELECT_7;
+  ledPin.mode  = MODESELECT_OUTPUT;
+  ledPin.oType = OTYPESELECT_PP;
+  ledPin.speed = SPEEDSELECT_FREQ_LOW;
+  ret = GpioInit(ledPin);
+  if (ret != RETURNCODE_SUCCESS){
+	  ErrorTrap();
+  }
 
-  GpioWrite(ledPin, RESET);
-
+  ret = GpioWrite(ledPin, PINSTATE_RESET);
+  if (ret != RETURNCODE_SUCCESS){
+	  ErrorTrap();
+  }
 
   GpioStruct buttonPin;
-  buttonPin.port  = PORT_C;
-  buttonPin.pin   = PIN_13;
-  buttonPin.mode  = INPUT;
-  buttonPin.pull  = PULL_DOWN;
-  GpioInit(buttonPin);
+  buttonPin.port  = PORTSELECT_C;
+  buttonPin.pin   = PINSELECT_13;
+  buttonPin.mode  = MODESELECT_INPUT;
+  buttonPin.pull  = PULLSELECT_PULL_DOWN;
+  ret = GpioInit(buttonPin);
+  if (ret != RETURNCODE_SUCCESS){
+	  ErrorTrap();
+  }
 
-
+  PinState pinState = PINSTATE_UNKNOWN;
+  ret = GpioWrite(ledPin, PINSTATE_SET);
+  if (ret != RETURNCODE_SUCCESS){
+	  ErrorTrap();
+  }
   while (1)
     {
+
+
 	  // Send a greeting to the trace device (skipped on Release).
 	  //trace_puts("Hello Arm World!");
 	  //trace_puts("Turning on LED");
-	  if (GpioRead(buttonPin) == SET) {
-		  GpioWrite(ledPin, SET);
+	  ret = GpioRead(buttonPin, &pinState);
+	  if (ret != RETURNCODE_SUCCESS){
+		  // TODO: handle error
 	  }
 
-	  else {
-		  GpioWrite(ledPin, RESET);
+	  if (pinState == PINSTATE_SET) {
+		  GpioWrite(ledPin, PINSTATE_SET);
+	  }
+	  else{
+		  GpioWrite(ledPin, PINSTATE_RESET);
 	  }
 
     }
