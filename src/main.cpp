@@ -32,6 +32,7 @@
 
 #include "STM32CommonLibrary_conf.h"
 #include "Gpio.h"
+#include "SystemConfig.h"
 
 // ----------------------------------------------------------------------------
 //
@@ -61,60 +62,57 @@ void ErrorTrap(){
 
 int main()
 {
-  //initHardware();
-  // At this stage the system clock should have already been configured
-  // at high speed.
-
   ReturnCode ret = RETURNCODE_UNKNOWN;
 
   GpioStruct ledPin;
-  ledPin.port  = PORTSELECT_B;
-  ledPin.pin   = PINSELECT_7;
-  ledPin.mode  = MODESELECT_OUTPUT;
-  ledPin.oType = OTYPESELECT_PP;
-  ledPin.speed = SPEEDSELECT_FREQ_LOW;
+  ledPin.port  = GPIO_PORTSELECT_B;
+  ledPin.pin   = GPIO_PINSELECT_7;
+  ledPin.mode  = GPIO_MODESELECT_OUTPUT;
+
+  ledPin.oType = GPIO_OTYPESELECT_PP;
+  ledPin.speed = GPIO_SPEEDSELECT_FREQ_LOW;
   ret = GpioInit(ledPin);
   if (ret != RETURNCODE_SUCCESS){
 	  ErrorTrap();
   }
 
-  ret = GpioWrite(ledPin, PINSTATE_RESET);
+  ret = GpioWrite(ledPin.port, ledPin.pin, GPIO_PINSTATE_RESET);
   if (ret != RETURNCODE_SUCCESS){
 	  ErrorTrap();
   }
 
   GpioStruct buttonPin;
-  buttonPin.port  = PORTSELECT_C;
-  buttonPin.pin   = PINSELECT_13;
-  buttonPin.mode  = MODESELECT_INPUT;
-  buttonPin.pull  = PULLSELECT_PULL_DOWN;
+  buttonPin.port  = GPIO_PORTSELECT_C;
+  buttonPin.pin   = GPIO_PINSELECT_13;
+  buttonPin.mode  = GPIO_MODESELECT_INPUT;
+  buttonPin.pull  = GPIO_PULLSELECT_PULL_DOWN;
   ret = GpioInit(buttonPin);
   if (ret != RETURNCODE_SUCCESS){
 	  ErrorTrap();
   }
 
-  PinState pinState = PINSTATE_UNKNOWN;
-  ret = GpioWrite(ledPin, PINSTATE_SET);
-  if (ret != RETURNCODE_SUCCESS){
-	  ErrorTrap();
-  }
+  GpioPinState pinState = GPIO_PINSTATE_UNKNOWN;
   while (1)
     {
 
-
+	  // enable port b pin 7 interrupt
+	  ret = SysCfgEnableExti(SYSCFG_EXTI_CR2, GPIO_PORTSELECT_B, GPIO_PINSELECT_7);
+	  if (ret != RETURNCODE_SUCCESS){
+		  ErrorTrap();
+	  }
 	  // Send a greeting to the trace device (skipped on Release).
 	  //trace_puts("Hello Arm World!");
 	  //trace_puts("Turning on LED");
-	  ret = GpioRead(buttonPin, &pinState);
+	  ret = GpioRead(buttonPin.port, buttonPin.pin, &pinState);
 	  if (ret != RETURNCODE_SUCCESS){
 		  // TODO: handle error
 	  }
 
-	  if (pinState == PINSTATE_SET) {
-		  GpioWrite(ledPin, PINSTATE_SET);
+	  if (pinState == GPIO_PINSTATE_SET) {
+		  GpioWrite(ledPin.port, ledPin.pin, GPIO_PINSTATE_RESET);
 	  }
 	  else{
-		  GpioWrite(ledPin, PINSTATE_RESET);
+		  GpioWrite(ledPin.port, ledPin.pin, GPIO_PINSTATE_SET);
 	  }
 
     }
