@@ -33,6 +33,7 @@
 #include "STM32CommonLibrary_conf.h"
 #include "Gpio.h"
 #include "SystemConfig.h"
+#include "Exti.h"
 
 // ----------------------------------------------------------------------------
 //
@@ -54,21 +55,48 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
+Boolean buttonFlag = FALSE;
+
 void ErrorTrap(){
 	while(1){
 		;
 	}
 }
 
+/**
+ * IRQ must b C
+ */
+
+#ifdef __cplusplus
+	extern "C" {
+#endif
+
+void EXTI15_10_IRQHandler(){
+	ExtiResetInterrupt(EXTI_LINESELECT_13);
+	GpioPinState pinState = GPIO_PINSTATE_UNKNOWN;
+	GpioRead(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, &pinState);
+	if (pinState == GPIO_PINSTATE_RESET){
+		GpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, GPIO_PINSTATE_SET);
+	}
+	else{
+		GpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, GPIO_PINSTATE_RESET);
+	}
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+
+
 int main()
 {
   ReturnCode ret = RETURNCODE_UNKNOWN;
 
-  GpioStruct ledPin;
+  GpioConfigStruct ledPin;
   ledPin.port  = GPIO_PORTSELECT_B;
   ledPin.pin   = GPIO_PINSELECT_7;
   ledPin.mode  = GPIO_MODESELECT_OUTPUT;
-
   ledPin.oType = GPIO_OTYPESELECT_PP;
   ledPin.speed = GPIO_SPEEDSELECT_FREQ_LOW;
   ret = GpioInit(ledPin);
@@ -81,41 +109,34 @@ int main()
 	  ErrorTrap();
   }
 
-  GpioStruct buttonPin;
-  buttonPin.port  = GPIO_PORTSELECT_C;
-  buttonPin.pin   = GPIO_PINSELECT_13;
-  buttonPin.mode  = GPIO_MODESELECT_INPUT;
-  buttonPin.pull  = GPIO_PULLSELECT_PULL_DOWN;
+  // Enable Exti for Port C, Pin 13
+  SysCfgEnableExti(GPIO_PORTSELECT_C, GPIO_PINSELECT_13);
+
+  // Initialize Exti
+  ExtiConfigStruct portCExti;
+  portCExti.line           = EXTI_LINESELECT_13;
+  portCExti.risingTrigger  = TRUE;
+  portCExti.fallingTrigger = FALSE;
+  ExtiInterruptInit(portCExti);
+
+  GpioConfigStruct buttonPin;
+  buttonPin.port    = GPIO_PORTSELECT_C;
+  buttonPin.pin     = GPIO_PINSELECT_13;
+  buttonPin.mode    = GPIO_MODESELECT_INPUT;	// Event Out Mode
+  buttonPin.pull    = GPIO_PULLSELECT_PULL_DOWN;
   ret = GpioInit(buttonPin);
   if (ret != RETURNCODE_SUCCESS){
 	  ErrorTrap();
   }
 
-  GpioPinState pinState = GPIO_PINSTATE_UNKNOWN;
+  // Enable IRQ
+  ret = enableExtiIrq(EXTI15_10_IRQn);
+  if (ret != RETURNCODE_SUCCESS){
+	  ErrorTrap();
+  }
+
   while (1)
-    {
-
-	  // enable port b pin 7 interrupt
-	  ret = SysCfgEnableExti(SYSCFG_EXTI_CR2, GPIO_PORTSELECT_B, GPIO_PINSELECT_7);
-	  if (ret != RETURNCODE_SUCCESS){
-		  ErrorTrap();
-	  }
-	  // Send a greeting to the trace device (skipped on Release).
-	  //trace_puts("Hello Arm World!");
-	  //trace_puts("Turning on LED");
-	  ret = GpioRead(buttonPin.port, buttonPin.pin, &pinState);
-	  if (ret != RETURNCODE_SUCCESS){
-		  // TODO: handle error
-	  }
-
-	  if (pinState == GPIO_PINSTATE_SET) {
-		  GpioWrite(ledPin.port, ledPin.pin, GPIO_PINSTATE_RESET);
-	  }
-	  else{
-		  GpioWrite(ledPin.port, ledPin.pin, GPIO_PINSTATE_SET);
-	  }
-
-    }
+  {}
 }
 
 #pragma GCC diagnostic pop
