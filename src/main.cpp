@@ -35,6 +35,7 @@
 #include "SystemConfig.h"
 #include "Exti.h"
 
+
 // ----------------------------------------------------------------------------
 //
 // Standalone STM32F4 empty sample (trace via DEBUG).
@@ -93,6 +94,10 @@ int main()
 {
   ReturnCode ret = RETURNCODE_UNKNOWN;
 
+////////////////////////////////////////////////////////////////
+  /**
+   * Basic GPIO
+   */
   GpioConfigStruct ledPin;
   ledPin.port  = GPIO_PORTSELECT_B;
   ledPin.pin   = GPIO_PINSELECT_7;
@@ -108,7 +113,13 @@ int main()
   if (ret != RETURNCODE_SUCCESS){
 	  ErrorTrap();
   }
+//////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////
+  /**
+   * EXTI Interrupt
+   */
   // Enable Exti for Port C, Pin 13
   SysCfgEnableExti(GPIO_PORTSELECT_C, GPIO_PINSELECT_13);
 
@@ -122,7 +133,7 @@ int main()
   GpioConfigStruct buttonPin;
   buttonPin.port    = GPIO_PORTSELECT_C;
   buttonPin.pin     = GPIO_PINSELECT_13;
-  buttonPin.mode    = GPIO_MODESELECT_INPUT;	// Event Out Mode
+  buttonPin.mode    = GPIO_MODESELECT_INPUT;			// Event Out Mode
   buttonPin.pull    = GPIO_PULLSELECT_PULL_DOWN;
   ret = GpioInit(buttonPin);
   if (ret != RETURNCODE_SUCCESS){
@@ -130,10 +141,8 @@ int main()
   }
 
   // Enable IRQ
-  ret = enableExtiIrq(EXTI15_10_IRQn);
-  if (ret != RETURNCODE_SUCCESS){
-	  ErrorTrap();
-  }
+  enableExtiIrq(EXTI_IRQSELECT_15_10);
+//////////////////////////////////////////////////////////////////////
 
   while (1)
   {}
