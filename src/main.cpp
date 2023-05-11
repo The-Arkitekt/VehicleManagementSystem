@@ -30,10 +30,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "STM32CommonLibrary_conf.h"
-#include "Gpio.h"
-#include "SystemConfig.h"
-#include "Exti.h"
+#include "boolean.h"
+#include "gpio.h"
+#include "systemConfig.h"
+#include "exti.h"
 
 
 // ----------------------------------------------------------------------------
@@ -58,12 +58,6 @@
 
 Boolean buttonFlag = FALSE;
 
-void ErrorTrap(){
-	while(1){
-		;
-	}
-}
-
 /**
  * IRQ must b C
  */
@@ -73,14 +67,14 @@ void ErrorTrap(){
 #endif
 
 void EXTI15_10_IRQHandler(){
-	ExtiResetInterrupt(EXTI_LINESELECT_13);
-	GpioPinState pinState = GPIO_PINSTATE_UNKNOWN;
-	GpioRead(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, &pinState);
+	extiResetInterrupt(EXTI_LINESELECT_13);
+	Boolean pinState = FALSE;
+	gpioRead(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, &pinState);
 	if (pinState == GPIO_PINSTATE_RESET){
-		GpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, GPIO_PINSTATE_SET);
+		gpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, TRUE);
 	}
 	else{
-		GpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, GPIO_PINSTATE_RESET);
+		gpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, FALSE);
 	}
 }
 
@@ -92,8 +86,6 @@ void EXTI15_10_IRQHandler(){
 
 int main()
 {
-  ReturnCode ret = RETURNCODE_UNKNOWN;
-
 ////////////////////////////////////////////////////////////////
   /**
    * Basic GPIO
@@ -104,15 +96,9 @@ int main()
   ledPin.mode  = GPIO_MODESELECT_OUTPUT;
   ledPin.oType = GPIO_OTYPESELECT_PP;
   ledPin.speed = GPIO_SPEEDSELECT_FREQ_LOW;
-  ret = GpioInit(ledPin);
-  if (ret != RETURNCODE_SUCCESS){
-	  ErrorTrap();
-  }
+  gpioInit(ledPin);
 
-  ret = GpioWrite(ledPin.port, ledPin.pin, GPIO_PINSTATE_RESET);
-  if (ret != RETURNCODE_SUCCESS){
-	  ErrorTrap();
-  }
+  gpioWrite(ledPin.port, ledPin.pin, FALSE);
 //////////////////////////////////////////////////////////////////
 
 
@@ -121,24 +107,21 @@ int main()
    * EXTI Interrupt
    */
   // Enable Exti for Port C, Pin 13
-  SysCfgEnableExti(GPIO_PORTSELECT_C, GPIO_PINSELECT_13);
+  sysCfgSetExti(GPIO_PORTSELECT_C, GPIO_PINSELECT_13, TRUE);
 
   // Initialize Exti
   ExtiConfigStruct portCExti;
   portCExti.line           = EXTI_LINESELECT_13;
   portCExti.risingTrigger  = TRUE;
   portCExti.fallingTrigger = FALSE;
-  ExtiInterruptInit(portCExti);
+  extiInterruptInit(portCExti);
 
   GpioConfigStruct buttonPin;
   buttonPin.port    = GPIO_PORTSELECT_C;
   buttonPin.pin     = GPIO_PINSELECT_13;
   buttonPin.mode    = GPIO_MODESELECT_INPUT;			// Event Out Mode
   buttonPin.pull    = GPIO_PULLSELECT_PULL_DOWN;
-  ret = GpioInit(buttonPin);
-  if (ret != RETURNCODE_SUCCESS){
-	  ErrorTrap();
-  }
+  gpioInit(buttonPin);
 
   // Enable IRQ
   enableExtiIrq(EXTI_IRQSELECT_15_10);
