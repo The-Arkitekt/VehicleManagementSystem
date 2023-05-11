@@ -68,9 +68,8 @@ Boolean buttonFlag = FALSE;
 
 void EXTI15_10_IRQHandler(){
 	extiResetInterrupt(EXTI_LINESELECT_13);
-	Boolean pinState = FALSE;
-	gpioRead(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, &pinState);
-	if (pinState == GPIO_PINSTATE_RESET){
+	Boolean pinState = gpioRead(GPIO_PORTSELECT_B, GPIO_PINSELECT_7);
+	if (pinState == FALSE){
 		gpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, TRUE);
 	}
 	else{
