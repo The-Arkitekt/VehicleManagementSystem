@@ -66,22 +66,31 @@ Boolean buttonFlag = FALSE;
 	extern "C" {
 #endif
 
-void EXTI15_10_IRQHandler(){
-	extiResetInterrupt(EXTI_LINESELECT_13);
-	Boolean pinState = gpioRead(GPIO_PORTSELECT_B, GPIO_PINSELECT_7);
-	if (pinState == FALSE){
-		gpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, TRUE);
-	}
-	else{
-		gpioWrite(GPIO_PORTSELECT_B, GPIO_PINSELECT_7, FALSE);
-	}
+void EXTI15_10_IRQHandler()
+{
+	clearPendingExtiLineInterruptRequest(EXTI_LINESELECT_13);
+
+  GPIO_TypeDef* const gpioPtr = getGpioPort(GPIO_PORTSELECT_B);
+  BYTE_TYPE pin = 7U;
+
+  Boolean pinState = FALSE;
+	Boolean success = readGpioPinValue(gpioPtr, pin, &pinState);
+  if (success == TRUE)
+  {
+    if (pinState == FALSE)
+    {
+      setGpioPinValue(gpioPtr, pin, TRUE);
+    }
+    else
+    {
+      setGpioPinValue(gpioPtr, pin, FALSE);
+    }
+  }
 }
 
 #ifdef __cplusplus
 }
 #endif
-
-
 
 int main()
 {
@@ -89,15 +98,13 @@ int main()
   /**
    * Basic GPIO
    */
-  GpioConfigStruct ledPin;
-  ledPin.port  = GPIO_PORTSELECT_B;
-  ledPin.pin   = GPIO_PINSELECT_7;
-  ledPin.mode  = GPIO_MODESELECT_OUTPUT;
-  ledPin.oType = GPIO_OTYPESELECT_PP;
-  ledPin.speed = GPIO_SPEEDSELECT_FREQ_LOW;
-  gpioInit(ledPin);
+  GpioPortSelect      ledPort          = GPIO_PORTSELECT_B;
+  BYTE_TYPE           ledPin           = 7U;
+  GPIO_TypeDef* const ledPortStructPtr = getGpioPort(ledPort);
 
-  gpioWrite(ledPin.port, ledPin.pin, FALSE);
+  gpioEnable(ledPort);
+  setGpioConfig(ledPortStructPtr, ledPin, GPIO_MODE, 1U); // Set pin as output
+  setGpioPinValue(ledPortStructPtr, ledPin, FALSE);
 //////////////////////////////////////////////////////////////////
 
 
@@ -106,21 +113,20 @@ int main()
    * EXTI Interrupt
    */
   // Enable Exti for Port C, Pin 13
-  sysCfgSetExti(GPIO_PORTSELECT_C, GPIO_PINSELECT_13, TRUE);
+  GpioPortSelect      buttonPort          = GPIO_PORT_SELECT_C;
+  BYTE_TYPE           buttonPin           = 13U;
+  GPIO_TypeDef* const buttonPortStructPtr = getGpioPort(buttonPort);
+
+  gpioEnable(buttonPort);
+  setGpioConfig(buttonPortStructPtr, buttonPin, GPIO_PULL_UP_DOWN, 2U); // Set pull-down resistor
+
+  systemConfigEnable();
+  setSystemExternalInterruptSource(buttonPort, buttonPin);
 
   // Initialize Exti
-  ExtiConfigStruct portCExti;
-  portCExti.line           = EXTI_LINESELECT_13;
-  portCExti.risingTrigger  = TRUE;
-  portCExti.fallingTrigger = FALSE;
-  extiInterruptInit(portCExti);
-
-  GpioConfigStruct buttonPin;
-  buttonPin.port    = GPIO_PORTSELECT_C;
-  buttonPin.pin     = GPIO_PINSELECT_13;
-  buttonPin.mode    = GPIO_MODESELECT_INPUT;			// Event Out Mode
-  buttonPin.pull    = GPIO_PULLSELECT_PULL_DOWN;
-  gpioInit(buttonPin);
+  extiEnable();
+  setExtiLineTrigger(buttonPin, EXTI_RISING_TRIGGER);
+  setExtiLineInterruptMask(buttonPin, TRUE);
 
   // Enable IRQ
   enableExtiIrq(EXTI_IRQSELECT_15_10);
