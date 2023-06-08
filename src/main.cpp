@@ -68,24 +68,18 @@ Boolean buttonFlag = FALSE;
 
 void EXTI15_10_IRQHandler()
 {
-	clearPendingExtiLineInterruptRequest(EXTI_LINESELECT_13);
+	clearPendingExtiLineInterruptRequest(13U);
 
-  GPIO_TypeDef* const gpioPtr = getGpioPort(GPIO_PORTSELECT_B);
-  BYTE_TYPE pin = 7U;
+  GpioPinState pinState = GPIO_get_pin_state(GPIO_PORT_B, GPIO_PIN_7);
 
-  Boolean pinState = FALSE;
-	Boolean success = readGpioPinValue(gpioPtr, pin, &pinState);
-  if (success == TRUE)
+  if (pinState == GPIO_PINSTATE_RESET)
   {
-    if (pinState == FALSE)
-    {
-      setGpioPinValue(gpioPtr, pin, TRUE);
-    }
-    else
-    {
-      setGpioPinValue(gpioPtr, pin, FALSE);
-    }
+    GPIO_set_pin_state(GPIO_PORT_B, GPIO_PIN_7, GPIO_PINSTATE_SET);
   }
+  else
+  {
+    GPIO_set_pin_state(GPIO_PORT_B, GPIO_PIN_7, GPIO_PINSTATE_RESET);
+  } 
 }
 
 #ifdef __cplusplus
@@ -102,9 +96,14 @@ int main()
   BYTE_TYPE           ledPin           = 7U;
   GPIO_TypeDef* const ledPortStructPtr = getGpioPort(ledPort);
 
-  gpioEnable(ledPort);
-  setGpioConfig(ledPortStructPtr, ledPin, GPIO_MODE, 1U); // Set pin as output
-  setGpioPinValue(ledPortStructPtr, ledPin, FALSE);
+  GpioConfigStruct led = GpioConfigStruct_default;
+  led.port = GPIO_PORT_B;
+  led.pin  = GPIO_PIN_7;
+  led.mode = GPIO_MODE_OUTPUT;
+
+  GPIO_enable(led.port);
+  GPIO_set_config(led);
+  GPIO_set_pin_state(led.port, led.pin, GPIO_PINSTATE_RESET);
 //////////////////////////////////////////////////////////////////
 
 
@@ -113,7 +112,7 @@ int main()
    * EXTI Interrupt
    */
   // Enable Exti for Port C, Pin 13
-  GpioPortSelect      buttonPort          = GPIO_PORT_SELECT_C;
+  GpioPortSelect      buttonPort          = GPIO_PORTSELECT_C;
   BYTE_TYPE           buttonPin           = 13U;
   GPIO_TypeDef* const buttonPortStructPtr = getGpioPort(buttonPort);
 
@@ -124,8 +123,7 @@ int main()
   setSystemExternalInterruptSource(buttonPort, buttonPin);
 
   // Initialize Exti
-  extiEnable();
-  setExtiLineTrigger(buttonPin, EXTI_RISING_TRIGGER);
+  setExtiLineTrigger(buttonPin, EXTI_RISING_TRIGGER, TRUE);
   setExtiLineInterruptMask(buttonPin, TRUE);
 
   // Enable IRQ
