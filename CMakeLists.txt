@@ -1,25 +1,22 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(DEVICE STM32F429)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake)
 
 set(ASSEMBLY_SCRIPT startup_stm32f429xx.s)
-set(LINKER_FILE stm32f429zi_flash.ld)
-
-set(STM32_COMMON_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../../STM32CommonLibrary)
-set(CMAKE_TOOLCHAIN_FILE ${STM32_COMMON_LIBRARY_DIR}/cmake/toolchain-arm-none-eabi.cmake)
-
 project(VehicleManagementSystem C CXX ASM)
 set(SOURCES
  main.cpp
- ${STM32_COMMON_LIBRARY_DIR}/build/startup/${ASSEMBLY_SCRIPT}
+ ${CMAKE_SOURCE_DIR}/startup/${ASSEMBLY_SCRIPT}
 )
 
+set(STM32_COMMON_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../STM32CommonLibrary)
 add_subdirectory(${STM32_COMMON_LIBRARY_DIR} ${STM32_COMMON_LIBRARY_DIR}/bld)
 
 add_executable(${PROJECT_NAME}
   ${SOURCES}
 )
 
+set(LINKER_FILE stm32f429zi_flash.ld)
 target_link_options(${PROJECT_NAME} PRIVATE
   -mcpu=cortex-m4
   -mthumb 
@@ -27,7 +24,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
   --specs=nosys.specs
   -nostdlib
   -lgcc
-  -T${STM32_COMMON_LIBRARY_DIR}/build/ld/${LINKER_FILE}
+  -T${CMAKE_SOURCE_DIR}/ld/${LINKER_FILE}
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
