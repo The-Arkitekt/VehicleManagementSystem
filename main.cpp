@@ -20,7 +20,7 @@ void EXTI15_10_IRQHandler()
 
   Boolean pin_state = GPIO_get_pin_data(GPIO_B, GPIO_PIN_7);
 
-  if (pinState == FALSE)
+  if (pin_state == FALSE)
   {
     GPIO_set_pin_data(GPIO_B, GPIO_PIN_7, TRUE);
   }
@@ -55,13 +55,13 @@ int main()
    */
   // Enable Exti for Port C, Pin 13
   GPIO_PORT_ENUM      buttonPort          = GPIO_C;
-  BYTE_TYPE           buttonPin           = GPIO_PIN_13;
+  GPIO_PIN_ENUM       buttonPin           = GPIO_PIN_13;
 
   RCC_enable_AHB1(RCC_AHB1_GPIOC);
   GPIO_set_pull(buttonPort, buttonPin, GPIO_PULL_DOWN);
 
   RCC_enable_APB2(RCC_APB2_SYSCFG);
-  SYSCFG_set_EXTI_source(SYSCFG_GPIO_PORT_C, SYSCFG_EXTI_LINE_13);
+  SYSCFG_set_EXTI_source(SYSCFG_EXTI_LINE_13, SYSCFG_GPIO_PORT_C);
 
   // Initialize Exti
   EXTI_set_rising_trigger(EXTI_LINE_13, TRUE);
