@@ -7,7 +7,7 @@
 .externalToolBuilders/*
 
 #build 
-src/bld
-src/bld/*
+bld
+bld/*
 
 

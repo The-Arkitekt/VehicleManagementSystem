@@ -1,8 +1,0 @@
-/home/architect/robot/VehicleManagementSystem/src/bld/CMakeFiles/VehicleManagementSystem.dir
-/home/architect/robot/VehicleManagementSystem/src/bld/CMakeFiles/edit_cache.dir
-/home/architect/robot/VehicleManagementSystem/src/bld/CMakeFiles/rebuild_cache.dir
-/home/architect/robot/STM32CommonLibrary/bld/CMakeFiles/Gpio.dir
-/home/architect/robot/STM32CommonLibrary/bld/CMakeFiles/SystemConfig.dir
-/home/architect/robot/STM32CommonLibrary/bld/CMakeFiles/Exti.dir
-/home/architect/robot/STM32CommonLibrary/bld/CMakeFiles/edit_cache.dir
-/home/architect/robot/STM32CommonLibrary/bld/CMakeFiles/rebuild_cache.dir
