@@ -1,22 +1,26 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake)
+set(TOOLCHAIN_DIR            ${CMAKE_SOURCE_DIR}/cmake)
+set(LINKER_DIR               ${CMAKE_SOURCE_DIR}/ld)
+set(STARTUP_DIR              ${CMAKE_SOURCE_DIR}/startup)
+set(STM32_COMMON_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../STM32CommonLibrary)
 
-set(ASSEMBLY_SCRIPT startup_stm32f429xx.s)
+set(CMAKE_TOOLCHAIN_FILE ${TOOLCHAIN_DIR}/toolchain-arm-none-eabi.cmake)
+set(LINKER_FILE          ${LINKER_DIR}/stm32f429zi_flash.ld)
+set(STARTUP_FILE         ${STARTUP_DIR}/startup_stm32f429xx.s)
+
 project(VehicleManagementSystem C CXX ASM)
 set(SOURCES
- main.cpp
- ${CMAKE_SOURCE_DIR}/startup/${ASSEMBLY_SCRIPT}
+  main.cpp
+  ${STARTUP_FILE}
 )
 
-set(STM32_COMMON_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../STM32CommonLibrary)
 add_subdirectory(${STM32_COMMON_LIBRARY_DIR} ${STM32_COMMON_LIBRARY_DIR}/bld)
 
 add_executable(${PROJECT_NAME}
   ${SOURCES}
 )
 
-set(LINKER_FILE stm32f429zi_flash.ld)
 target_link_options(${PROJECT_NAME} PRIVATE
   -mcpu=cortex-m4
   -mthumb 
@@ -24,13 +28,16 @@ target_link_options(${PROJECT_NAME} PRIVATE
   --specs=nosys.specs
   -nostdlib
   -lgcc
-  -T${CMAKE_SOURCE_DIR}/ld/${LINKER_FILE}
+  -T${LINKER_FILE}
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
-  SystemConfig
-  Gpio
-  Exti
+  DMA
+  EXTI
+  GPIO
+  NVIC
+  RCC
+  SYSCFG
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

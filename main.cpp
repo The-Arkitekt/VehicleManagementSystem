@@ -39,7 +39,7 @@ int main()
   /**
    * Basic GPIO
    */
-  GpioPortSelect      ledPort          = GPIO_PORTSELECT_B;
+  GPIO_PORT_ENUM      ledPort          = GPIO_PORTSELECT_B;
   BYTE_TYPE           ledPin           = 7U;
   GPIO_TypeDef* const ledPortStructPtr = getGpioPort(ledPort);
 
