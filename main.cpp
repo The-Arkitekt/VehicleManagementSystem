@@ -17,6 +17,8 @@ Boolean buttonFlag = FALSE;
 void EXTI15_10_IRQHandler()
 {
   EXTI_clear_pending_request(EXTI_LINE_13);
+  while(EXTI_pending_request_exists(EXTI_LINE_13) == TRUE)
+  {}
 
   Boolean pin_state = GPIO_get_pin_data(GPIO_B, GPIO_PIN_7);
 
@@ -58,7 +60,7 @@ int main()
   GPIO_PIN_ENUM       buttonPin           = GPIO_PIN_13;
 
   RCC_enable_AHB1(RCC_AHB1_GPIOC);
-  GPIO_set_pull(buttonPort, buttonPin, GPIO_PULL_DOWN);
+  GPIO_set_pull(buttonPort, buttonPin, GPIO_PULL_UP);
 
   RCC_enable_APB2(RCC_APB2_SYSCFG);
   SYSCFG_set_EXTI_source(SYSCFG_EXTI_LINE_13, SYSCFG_GPIO_PORT_C);
