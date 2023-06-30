@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(TOOLCHAIN_DIR            ${CMAKE_SOURCE_DIR}/cmake)
-set(LINKER_DIR               ${CMAKE_SOURCE_DIR}/ld)
-set(STARTUP_DIR              ${CMAKE_SOURCE_DIR}/startup)
-set(STM32_COMMON_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../STM32CommonLibrary)
+set(TOOLCHAIN_DIR        ${CMAKE_SOURCE_DIR}/cmake)
+set(LINKER_DIR           ${CMAKE_SOURCE_DIR}/ld)
+set(STARTUP_DIR          ${CMAKE_SOURCE_DIR}/startup)
+set(HARDWARE_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../stm32f429-hardware-library)
 
 set(CMAKE_TOOLCHAIN_FILE ${TOOLCHAIN_DIR}/toolchain-arm-none-eabi.cmake)
 set(LINKER_FILE          ${LINKER_DIR}/stm32f429zi_flash.ld)
@@ -15,7 +15,7 @@ set(SOURCES
   ${STARTUP_FILE}
 )
 
-add_subdirectory(${STM32_COMMON_LIBRARY_DIR} ${STM32_COMMON_LIBRARY_DIR}/bld)
+add_subdirectory(${HARDWARE_LIBRARY_DIR} ${HARDWARE_LIBRARY_DIR}/bld)
 
 add_executable(${PROJECT_NAME}
   ${SOURCES}
